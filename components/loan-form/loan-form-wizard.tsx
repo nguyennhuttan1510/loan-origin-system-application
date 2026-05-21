@@ -118,6 +118,7 @@ function LoanFormWizardEngine() {
 
   const handleDemoSelect = useCallback((seed: LoanApplicationSeed) => {
     localStorage.removeItem(DRAFT_KEY(formConfig.channel))
+    setHasDraft(false)
     setFormData(fillDemoData(seed))
     setCurrentStepIndex(0)
     setErrors({})
@@ -368,9 +369,11 @@ function LoanFormWizardEngine() {
       <div className="flex flex-col gap-8">
         {draftBanner}
 
-        <div className="flex justify-end">
-          <DemoDataPicker onSelect={handleDemoSelect} />
-        </div>
+        {process.env.NODE_ENV !== "production" && (
+          <div className="flex justify-end">
+            <DemoDataPicker onSelect={handleDemoSelect} />
+          </div>
+        )}
 
         <StepIndicator currentStep={currentStepConfig.id} activeStepIds={activeSteps.map((s) => s.id)} />
 

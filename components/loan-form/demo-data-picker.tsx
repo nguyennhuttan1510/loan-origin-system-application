@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { SeederApi } from "@/lib/apis"
+import { APPLICATION_STATUS } from "@/lib/constants/application-status"
 import type { LoanApplicationSeed } from "@/lib/apis/seeder-types"
 
 interface DemoDataPickerProps {
@@ -13,9 +14,9 @@ interface DemoDataPickerProps {
 }
 
 const STATUS_VARIANT: Record<string, "default" | "destructive" | "secondary" | "outline"> = {
-  APPROVED: "default",
-  REJECTED: "destructive",
-  UNDER_REVIEW: "secondary",
+  [APPLICATION_STATUS.APPROVED]: "default",
+  [APPLICATION_STATUS.REJECTED]: "destructive",
+  [APPLICATION_STATUS.UNDER_REVIEW]: "secondary",
 }
 
 function formatVnd(amount: number): string {
@@ -27,25 +28,32 @@ export function DemoDataPicker({ onSelect }: DemoDataPickerProps) {
   const [seeds, setSeeds] = useState<LoanApplicationSeed[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [hasFetched, setHasFetched] = useState(false)
 
   useEffect(() => {
-    if (!open) return
-    if (seeds.length > 0) return
+    if (!open || hasFetched) return
 
-    const fetch = async () => {
+    const loadSeeds = async () => {
       setIsLoading(true)
       setError(null)
       try {
         const res = await SeederApi.getAll()
         setSeeds(res.data?.data ?? [])
       } catch {
+        // network/server error — message rendered via error state
         setError("Không thể tải dữ liệu demo. Kiểm tra backend đã chạy chưa.")
       } finally {
         setIsLoading(false)
+        setHasFetched(true)
       }
     }
-    fetch()
-  }, [open, seeds.length])
+    loadSeeds()
+  }, [open, hasFetched])
+
+  const handleRetry = () => {
+    setError(null)
+    setHasFetched(false)
+  }
 
   const handleSelect = (seed: LoanApplicationSeed) => {
     onSelect(seed)
@@ -75,7 +83,7 @@ export function DemoDataPicker({ onSelect }: DemoDataPickerProps) {
           {error && (
             <div className="flex flex-col items-center gap-3 py-8 text-center">
               <p className="text-sm text-destructive">{error}</p>
-              <Button variant="outline" size="sm" onClick={() => setSeeds([])}>
+              <Button variant="outline" size="sm" onClick={handleRetry} disabled={isLoading}>
                 Thử lại
               </Button>
             </div>
