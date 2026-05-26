@@ -1,6 +1,6 @@
-// This function initializes a demo account if none exist
 export function setupDemoAccount() {
   if (typeof window === 'undefined') return;
+  if (process.env.NODE_ENV === 'production') return;
 
   const existing = localStorage.getItem('auth_users');
   if (existing && JSON.parse(existing).length > 0) {

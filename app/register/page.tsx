@@ -1,6 +1,6 @@
 'use client';
 
-import React, {useState, useEffect, ChangeEvent} from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
@@ -12,6 +12,7 @@ import { Field, FieldLabel } from '@/components/ui/field';
 import { Spinner } from '@/components/ui/spinner';
 import { UserPlus } from 'lucide-react';
 import {RegisterClientRequest} from "@/lib/auth-types";
+import {USER_TYPE} from "@/lib/constants/user-types";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -51,7 +52,7 @@ export default function RegisterPage() {
         nationalId: userInfo.nationalId,
         national: userInfo.national,
         phoneNumber: userInfo.phoneNumber,
-        type: "CLIENT",
+        type: USER_TYPE.CLIENT,
       } as RegisterClientRequest
       await register(payload);
       router.push('/dashboard');

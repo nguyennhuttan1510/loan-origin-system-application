@@ -1,8 +1,6 @@
 'use client';
 
 import {useEffect, useState} from 'react';
-import { mockStaff } from '@/lib/mock-staff';
-import { Staff } from '@/lib/staff-types';
 import { StaffTable } from '@/components/staff/staff-table';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,7 +15,6 @@ import {
 import Link from 'next/link';
 import { Users, Plus } from 'lucide-react';
 import {Sidebar} from "@/components/dashboard/sidebar";
-import {LoanFormWizard} from "@/components/loan-form/loan-form-wizard";
 import {StaffApi} from "@/lib/apis";
 import {StaffResponse} from "@/lib/apis/staff-types";
 import {toast} from "sonner";
@@ -33,8 +30,8 @@ export default function StaffPage() {
     try {
       const res = await StaffApi.getStaffs()
       setStaff(res.data.data)
-    } catch (e) {
-      console.error(e);
+    } catch {
+      // silent — table shows empty state on failure
     }
   }
 
@@ -51,8 +48,8 @@ export default function StaffPage() {
       if (res.status === 200) {
         await getStaff();
       }
-    } catch (e) {
-      console.error(e);
+    } catch {
+      // silent — delete failure leaves list unchanged
     }
   };
 

@@ -6,13 +6,21 @@ import { STEPS } from "@/lib/loan-form-types"
 
 interface StepIndicatorProps {
   currentStep: number
+  /** Subset of step IDs to display. Defaults to all steps when omitted. */
+  activeStepIds?: number[]
 }
 
-export function StepIndicator({ currentStep }: StepIndicatorProps) {
+export function StepIndicator({ currentStep, activeStepIds }: StepIndicatorProps) {
+  const visibleSteps = activeStepIds
+    ? STEPS.filter((s) => activeStepIds.includes(s.id))
+    : STEPS
+
+  const currentVisible = visibleSteps.find((s) => s.id === currentStep) ?? visibleSteps[0]
+
   return (
     <nav aria-label="Progress" className="w-full">
       <ol className="flex items-center gap-2">
-        {STEPS.map((step, index) => {
+        {visibleSteps.map((step, index) => {
           const isCompleted = currentStep > step.id
           const isCurrent = currentStep === step.id
           const isUpcoming = currentStep < step.id
@@ -31,13 +39,9 @@ export function StepIndicator({ currentStep }: StepIndicatorProps) {
                         "border-2 border-muted-foreground/30 text-muted-foreground"
                     )}
                   >
-                    {isCompleted ? (
-                      <Check className="h-4 w-4" />
-                    ) : (
-                      step.id
-                    )}
+                    {isCompleted ? <Check className="h-4 w-4" /> : index + 1}
                   </div>
-                  {index < STEPS.length - 1 && (
+                  {index < visibleSteps.length - 1 && (
                     <div
                       className={cn(
                         "h-0.5 flex-1 mx-2 transition-all duration-300",
@@ -67,11 +71,9 @@ export function StepIndicator({ currentStep }: StepIndicatorProps) {
       </ol>
       <div className="mt-2 md:hidden">
         <p className="text-sm font-medium text-primary">
-          Step {currentStep} of {STEPS.length}: {STEPS[currentStep - 1].title}
+          {currentVisible.title}
         </p>
-        <p className="text-xs text-muted-foreground">
-          {STEPS[currentStep - 1].description}
-        </p>
+        <p className="text-xs text-muted-foreground">{currentVisible.description}</p>
       </div>
     </nav>
   )

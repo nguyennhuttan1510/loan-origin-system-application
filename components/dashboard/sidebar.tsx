@@ -20,26 +20,31 @@ const navigationItems = [
     label: 'Dashboard',
     href: '/dashboard',
     icon: LayoutDashboard,
+    adminOnly: false,
   },
   {
     label: 'Applications',
     href: '/applications',
     icon: FileText,
+    adminOnly: false,
   },
   {
     label: 'New Application',
     href: '/application',
     icon: FileText,
+    adminOnly: false,
   },
   {
     label: 'Staff Management',
     href: '/staff',
     icon: Users,
+    adminOnly: false,
   },
   {
-    label: 'Settings',
-    href: '#',
+    label: 'Field Schema Settings',
+    href: '/admin/setting',
     icon: Settings,
+    adminOnly: true,
   },
 ];
 
@@ -48,6 +53,7 @@ export function Sidebar() {
   const router = useRouter();
   const { logout, user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const isAdmin = user?.role === 'ADMIN';
 
   const handleLogout = () => {
     logout();
@@ -93,25 +99,27 @@ export function Sidebar() {
 
           {/* Navigation */}
           <nav className="flex-1 space-y-2 px-4 py-6">
-            {navigationItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname === item.href || pathname.startsWith(item.href);
-              return (
-                <Link key={item.href} href={item.href}>
-                  <button
-                    onClick={() => setIsOpen(false)}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                      isActive
-                        ? 'bg-sidebar-primary text-sidebar-primary-foreground'
-                        : 'text-sidebar-foreground hover:bg-sidebar-accent'
-                    }`}
-                  >
-                    <Icon className="h-5 w-5" />
-                    {item.label}
-                  </button>
-                </Link>
-              );
-            })}
+            {navigationItems
+              .filter((item) => !item.adminOnly || isAdmin)
+              .map((item) => {
+                const Icon = item.icon;
+                const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+                return (
+                  <Link key={item.href} href={item.href}>
+                    <button
+                      onClick={() => setIsOpen(false)}
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
+                        isActive
+                          ? 'bg-sidebar-primary text-sidebar-primary-foreground'
+                          : 'text-sidebar-foreground hover:bg-sidebar-accent'
+                      }`}
+                    >
+                      <Icon className="h-5 w-5" />
+                      {item.label}
+                    </button>
+                  </Link>
+                );
+              })}
           </nav>
 
           {/* User Section */}

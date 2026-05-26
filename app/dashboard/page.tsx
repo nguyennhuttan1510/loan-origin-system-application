@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { Sidebar } from '@/components/dashboard/sidebar';
 import { LoanCharts } from '@/components/dashboard/loan-charts';
@@ -11,7 +10,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText, TrendingUp, CheckCircle, Clock } from 'lucide-react';
 
 export default function DashboardPage() {
-  const router = useRouter();
   const { user, isLoading } = useAuth();
 
   if (isLoading || !user) {

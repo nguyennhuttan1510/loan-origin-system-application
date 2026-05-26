@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "updatedAt": "2026-05-11T17:11:00.750Z",
+  "overrides": {
+    "1:lastName": {
+      "label": "Tên",
+      "placeholder": "Văn An",
+      "visibleWhen": null
+    },
+    "2:yearsEmployed": {
+      "label": "Số năm làm việc",
+      "placeholder": "VD: 5",
+      "visibleWhen": {
+        "field": "employmentStatus",
+        "op": "eq",
+        "value": "unemployed"
+      }
+    }
+  }
+}

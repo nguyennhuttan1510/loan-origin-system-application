@@ -12,8 +12,8 @@ import {
 import type {CustomerInfo, InitialApplicationType} from "@/lib/loan-form-types"
 import {Send} from "lucide-react";
 import {Button} from "@/components/ui/button";
+import {Spinner} from "@/components/ui/spinner";
 import {CategoryItem, ProductPropertiesResponse, LoanProductResponse} from "@/lib/apis/category-types";
-import Category from "@/lib/apis/category";
 import {Slider} from "@/components/ui/slider";
 import {Alert, AlertDescription} from "@/components/ui/alert";
 import {StatusSubmit} from "@/app/application/create/page";
@@ -29,12 +29,13 @@ interface InitialApplicationProps {
   errors: Record<string, string>
   categories: Categories
   productSelected: LoanProductResponse | undefined
+  isLoading?: boolean
   onChange: (data: Partial<InitialApplicationType>) => void
   onSubmit: () => void
   onSelectedProduct: (val: CategoryItem["value"]) => void
 }
 
-export function InitialApplication({ data, errors, status, categories, productSelected, onChange, onSubmit, onSelectedProduct}: InitialApplicationProps) {
+export function InitialApplication({ data, errors, status, categories, productSelected, isLoading, onChange, onSubmit, onSelectedProduct}: InitialApplicationProps) {
   return (
     <div className="flex flex-col gap-6">
       {!status?.success && (
@@ -215,9 +216,13 @@ export function InitialApplication({ data, errors, status, categories, productSe
 
       </div>
 
-      <Button onClick={onSubmit} className="gap-2">
-        <Send className="h-4 w-4" />
-        Submit Application
+      <Button onClick={onSubmit} disabled={isLoading} className="gap-2">
+        {isLoading ? (
+          <Spinner className="h-4 w-4" />
+        ) : (
+          <Send className="h-4 w-4" />
+        )}
+        {isLoading ? "Submitting..." : "Submit Application"}
       </Button>
 
     </div>

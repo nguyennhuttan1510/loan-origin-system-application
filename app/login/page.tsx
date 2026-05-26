@@ -103,11 +103,6 @@ export default function LoginPage() {
             </Link>
           </div>
 
-          <div className="mt-4 rounded-lg bg-accent p-3">
-            <p className="text-xs font-medium text-accent-foreground">Demo Credentials:</p>
-            <p className="text-xs text-accent-foreground">Email: demo@example.com</p>
-            <p className="text-xs text-accent-foreground">Password: password123</p>
-          </div>
         </CardContent>
       </Card>
     </div>

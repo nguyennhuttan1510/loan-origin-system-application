@@ -1,6 +1,5 @@
 import { z } from "zod"
 
-// Initial application
 export const initialApplication = z.object({
   productId: z.string().min(1, "ProductId is required"),
   requestAmount: z.string().min(1, "Request amount is required"),
@@ -15,65 +14,216 @@ export const initialApplication = z.object({
 
 export type InitialApplicationType = z.infer<typeof initialApplication>
 
-// Step 1: Customer Information
+// --- Helpers ---
+const VN_PHONE_RE = /^(0[3|5|7|8|9])[0-9]{8}$/
+const CMND_RE = /^\d{9}$|^\d{12}$/
+const POSTAL_CODE_RE = /^\d{5,6}$/
+
+const vnPhone = (label: string) =>
+  z.string().regex(VN_PHONE_RE, `${label} không hợp lệ (10 số, bắt đầu 03/05/07/08/09)`)
+
+const positiveAmount = (label: string) =>
+  z.string().min(1, `${label} là bắt buộc`).refine(
+    (v) => !isNaN(parseFloat(v)) && parseFloat(v) > 0,
+    `${label} phải lớn hơn 0`
+  )
+
+const nonNegativeAmount = (label: string) =>
+  z.string().min(1, `${label} là bắt buộc`).refine(
+    (v) => !isNaN(parseFloat(v)) && parseFloat(v) >= 0,
+    `${label} không được âm`
+  )
+
+const optionalNonNegative = (label: string) =>
+  z.string().optional().refine(
+    (v) => !v || (!isNaN(parseFloat(v)) && parseFloat(v) >= 0),
+    `${label} không được âm`
+  )
+
+const isAdult = (dateStr: string) => {
+  const dob = new Date(dateStr)
+  const cutoff = new Date()
+  cutoff.setFullYear(cutoff.getFullYear() - 18)
+  return dob <= cutoff
+}
+
+const isPastOrToday = (dateStr: string) => new Date(dateStr) <= new Date()
+
+// --- Step 1: Thông tin cá nhân ---
 export const customerInfoSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
-  dateOfBirth: z.string().min(1, "Date of birth is required"),
-  gender: z.string().min(1, "Gender is required"),
-  nationalId: z.string().min(1, "National ID is required"),
-  email: z.string().email("Invalid email address"),
-  phone: z.string().min(1, "Phone number is required"),
-  maritalStatus: z.string().min(1, "Marital status is required"),
+  firstName: z.string().min(1, "Họ là bắt buộc"),
+  lastName: z.string().min(1, "Tên là bắt buộc"),
+  dateOfBirth: z
+    .string()
+    .min(1, "Ngày sinh là bắt buộc")
+    .refine(isPastOrToday, "Ngày sinh không được là ngày tương lai")
+    .refine(isAdult, "Người vay phải đủ 18 tuổi"),
+  gender: z.string().min(1, "Giới tính là bắt buộc"),
+  nationalId: z
+    .string()
+    .min(1, "Số CMND/Hộ chiếu là bắt buộc")
+    .refine((v) => CMND_RE.test(v), "CMND/CCCD phải là 9 hoặc 12 chữ số"),
+  nationalIdIssueDate: z
+    .string()
+    .optional()
+    .refine(
+      (v) => !v || isPastOrToday(v),
+      "Ngày cấp CMND không được là ngày tương lai"
+    ),
+  nationalIdIssuePlace: z.string().optional(),
+  email: z.string().email("Địa chỉ email không hợp lệ"),
+  phone: vnPhone("Điện thoại di động"),
+  landlinePhone: z
+    .string()
+    .optional()
+    .refine(
+      (v) => !v || /^\d{10,11}$/.test(v.replace(/[\s\-]/g, "")),
+      "Điện thoại cố định không hợp lệ"
+    ),
+  maritalStatus: z.string().min(1, "Tình trạng hôn nhân là bắt buộc"),
+  bidvRelationship: z.string().min(1, "Quan hệ tín dụng với BIDV là bắt buộc"),
 })
 
-// Step 2: Customer Income
+// --- Step 2: Thu nhập & Tài chính ---
 export const customerIncomeSchema = z.object({
-  employmentStatus: z.string().min(1, "Employment status is required"),
-  employerName: z.string().min(1, "Employer name is required"),
-  jobTitle: z.string().min(1, "Job title is required"),
-  monthlyIncome: z.string().min(1, "Monthly income is required"),
-  additionalIncome: z.string().optional(),
+  employmentStatus: z.string().min(1, "Tình trạng việc làm là bắt buộc"),
+  employerName: z.string().min(1, "Tên cơ quan là bắt buộc"),
+  employerAddress: z.string().optional(),
+  employerPhone: z
+    .string()
+    .optional()
+    .refine(
+      (v) => !v || /^\d{9,11}$/.test(v.replace(/[\s\-]/g, "")),
+      "Điện thoại cơ quan không hợp lệ"
+    ),
+  jobTitle: z.string().min(1, "Vị trí công tác là bắt buộc"),
+  yearsEmployed: z
+    .string()
+    .min(1, "Số năm làm việc là bắt buộc")
+    .refine(
+      (v) => !isNaN(parseFloat(v)) && parseFloat(v) >= 0,
+      "Số năm làm việc phải lớn hơn hoặc bằng 0"
+    ),
+  monthlyIncome: positiveAmount("Lương hàng tháng"),
+  businessIncome: optionalNonNegative("Thu nhập kinh doanh"),
+  rentalIncome: optionalNonNegative("Thu nhập cho thuê"),
+  additionalIncome: optionalNonNegative("Thu nhập khác"),
   incomeSource: z.string().optional(),
-  yearsEmployed: z.string().min(1, "Years employed is required"),
+  livingExpenses: nonNegativeAmount("Chi phí sinh hoạt"),
+  installmentExpenses: optionalNonNegative("Các khoản trả góp"),
+  realEstateAssets: optionalNonNegative("Bất động sản"),
+  movableAssets: optionalNonNegative("Động sản"),
+  depositAssets: optionalNonNegative("Tiền gửi"),
 })
 
-// Step 3: Customer Relationship
-export const customerRelationshipSchema = z.object({
-  referenceName1: z.string().min(1, "Reference name is required"),
-  referencePhone1: z.string().min(1, "Reference phone is required"),
-  referenceRelation1: z.string().min(1, "Relationship is required"),
-  referenceName2: z.string().optional(),
-  referencePhone2: z.string().optional(),
-  referenceRelation2: z.string().optional(),
-  existingCustomer: z.string().min(1, "Please select an option"),
-  accountNumber: z.string().optional(),
-})
+// --- Step 3: Người đồng trả nợ & Người tham chiếu ---
+export const customerRelationshipSchema = z
+  .object({
+    coborrowerName: z.string().optional(),
+    coborrowerDateOfBirth: z
+      .string()
+      .optional()
+      .refine(
+        (v) => !v || isPastOrToday(v),
+        "Ngày sinh người đồng trả nợ không được là ngày tương lai"
+      )
+      .refine(
+        (v) => !v || isAdult(v),
+        "Người đồng trả nợ phải đủ 18 tuổi"
+      ),
+    coborrowerGender: z.string().optional(),
+    coborrowerIdNumber: z
+      .string()
+      .optional()
+      .refine(
+        (v) => !v || CMND_RE.test(v),
+        "CMND/CCCD người đồng trả nợ phải là 9 hoặc 12 chữ số"
+      ),
+    coborrowerIdIssueDate: z
+      .string()
+      .optional()
+      .refine(
+        (v) => !v || isPastOrToday(v),
+        "Ngày cấp CMND không được là ngày tương lai"
+      ),
+    coborrowerIdIssuePlace: z.string().optional(),
+    coborrowerCurrentAddress: z.string().optional(),
+    coborrowerMobilePhone: z
+      .string()
+      .optional()
+      .refine(
+        (v) => !v || VN_PHONE_RE.test(v),
+        "Điện thoại người đồng trả nợ không hợp lệ"
+      ),
+    coborrowerMonthlyIncome: optionalNonNegative("Thu nhập người đồng trả nợ"),
+    referenceName1: z.string().min(1, "Họ tên người tham chiếu là bắt buộc"),
+    referencePhone1: vnPhone("Điện thoại người tham chiếu"),
+    referenceRelation1: z.string().min(1, "Quan hệ với người vay là bắt buộc"),
+    referenceAddress1: z.string().optional(),
+    referenceName2: z.string().optional(),
+    referencePhone2: z
+      .string()
+      .optional()
+      .refine(
+        (v) => !v || VN_PHONE_RE.test(v),
+        "Điện thoại người tham chiếu phụ không hợp lệ"
+      ),
+    referenceRelation2: z.string().optional(),
+    existingCustomer: z.string().min(1, "Vui lòng chọn"),
+    accountNumber: z.string().optional(),
+  })
+  .refine(
+    (d) => {
+      // Nếu nhập tên người đồng trả nợ thì bắt buộc phải có CMND
+      if (d.coborrowerName && !d.coborrowerIdNumber) return false
+      return true
+    },
+    { message: "Vui lòng nhập CMND người đồng trả nợ", path: ["coborrowerIdNumber"] }
+  )
 
-// Step 4: Customer Location
+// --- Step 4: Địa chỉ ---
 export const customerLocationSchema = z.object({
-  addressLine1: z.string().min(1, "Address is required"),
+  permanentAddress: z.string().min(1, "Địa chỉ thường trú là bắt buộc"),
+  addressLine1: z.string().min(1, "Địa chỉ cư trú hiện tại là bắt buộc"),
   addressLine2: z.string().optional(),
-  city: z.string().min(1, "City is required"),
-  state: z.string().min(1, "State/Province is required"),
-  postalCode: z.string().min(1, "Postal code is required"),
-  country: z.string().min(1, "Country is required"),
-  residenceType: z.string().min(1, "Residence type is required"),
-  yearsAtAddress: z.string().min(1, "Years at address is required"),
+  city: z.string().min(1, "Quận/Huyện là bắt buộc"),
+  state: z.string().min(1, "Tỉnh/Thành phố là bắt buộc"),
+  postalCode: z
+    .string()
+    .min(1, "Mã bưu chính là bắt buộc")
+    .regex(POSTAL_CODE_RE, "Mã bưu chính phải là 5-6 chữ số"),
+  country: z.string().min(1, "Quốc gia là bắt buộc"),
+  residenceType: z.string().min(1, "Loại hình cư trú là bắt buộc"),
+  yearsAtAddress: z
+    .string()
+    .min(1, "Số năm cư trú là bắt buộc")
+    .refine(
+      (v) => !isNaN(parseFloat(v)) && parseFloat(v) >= 0,
+      "Số năm cư trú phải lớn hơn hoặc bằng 0"
+    ),
 })
 
-// Step 5: Loan Information
+// --- Step 5: Thông tin khoản vay ---
 export const loanInfoSchema = z.object({
-  loanType: z.string().min(1, "Loan type is required"),
-  loanAmount: z.string().min(1, "Loan amount is required"),
-  loanTerm: z.string().min(1, "Loan term is required"),
-  interestRateType: z.string().min(1, "Interest rate type is required"),
-  loanPurpose: z.string().min(1, "Loan purpose is required"),
+  loanType: z.string().min(1, "Sản phẩm vay là bắt buộc"),
+  loanMethod: z.string().min(1, "Phương thức vay là bắt buộc"),
+  loanAmount: positiveAmount("Số tiền vay"),
+  loanTerm: z.string().min(1, "Thời hạn vay là bắt buộc"),
+  loanPurpose: z.string().min(1, "Mục đích vay là bắt buộc"),
+  repaymentSource: z.string().min(1, "Nguồn trả nợ là bắt buộc"),
+  principalRepaymentPeriod: z.string().min(1, "Kỳ trả nợ gốc là bắt buộc"),
+  interestRepaymentPeriod: z.string().min(1, "Kỳ trả nợ lãi là bắt buộc"),
+  principalRepaymentMethod: z.string().min(1, "Hình thức trả nợ gốc là bắt buộc"),
+  repaymentMethod: z.string().min(1, "Phương thức trả nợ là bắt buộc"),
+  repaymentAccountNumber: z.string().optional(),
   collateralType: z.string().optional(),
-  collateralValue: z.string().optional(),
+  collateralValue: optionalNonNegative("Giá trị tài sản bảo đảm"),
+  collateralAddress: z.string().optional(),
+  collateralOwnerType: z.string().optional(),
+  insurancePackage: z.string().optional(),
+  insurancePaymentMethod: z.string().optional(),
 })
 
-// Combined form data
 export const loanFormSchema = z.object({
   customerInfo: customerInfoSchema,
   customerIncome: customerIncomeSchema,
@@ -90,10 +240,10 @@ export type LoanInfo = z.infer<typeof loanInfoSchema>
 export type LoanFormData = z.infer<typeof loanFormSchema>
 
 export const STEPS = [
-  { id: 1, title: "Customer Information", description: "Personal details" },
-  { id: 2, title: "Income Details", description: "Employment & income" },
-  { id: 3, title: "Relationships", description: "References & contacts" },
-  { id: 4, title: "Location", description: "Address information" },
-  { id: 5, title: "Loan Details", description: "Loan specifications" },
-  { id: 6, title: "Review", description: "Confirm & submit" },
+  { id: 1, title: "Thông tin cá nhân", description: "Personal details" },
+  { id: 2, title: "Thu nhập & Tài chính", description: "Employment & income" },
+  { id: 3, title: "Người đồng trả nợ", description: "Co-borrower & references" },
+  { id: 4, title: "Địa chỉ", description: "Address information" },
+  { id: 5, title: "Thông tin khoản vay", description: "Loan specifications" },
+  { id: 6, title: "Xem lại", description: "Confirm & submit" },
 ] as const

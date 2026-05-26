@@ -1,20 +1,19 @@
 "use client";
 
-import {initialApplication, InitialApplicationType} from "@/lib/loan-form-types";
-import {Card, CardContent} from "@/components/ui/card";
-import {Categories, InitialApplication} from "@/components/loan-form/application-form";
-import React, {useCallback, useEffect, useState} from "react";
-import {ApplicationApi, CategoryApi} from "@/lib/apis";
-import {ApplicationRequest} from "@/lib/apis/application-types";
-import {
-  CategoryItem,
-  LoanProductResponse,
-  ProductPropertiesResponse
-} from "@/lib/apis/category-types";
-import {formatISO} from "date-fns";
-import {Toaster} from "@/components/ui/toaster";
-import {useToast} from "@/hooks/use-toast";
-import {HttpResponse} from "@/lib/http-types";
+import React, { useCallback, useEffect, useState } from "react";
+
+import { formatISO } from "date-fns";
+
+import { Card, CardContent } from "@/components/ui/card";
+import { Toaster } from "@/components/ui/toaster";
+import { Categories, InitialApplication } from "@/components/loan-form/application-form";
+import { ApplicationApi, CategoryApi } from "@/lib/apis";
+import { ApplicationRequest } from "@/lib/apis/application-types";
+import { CategoryItem, LoanProductResponse, ProductPropertiesResponse } from "@/lib/apis/category-types";
+import { USER_TYPE } from "@/lib/constants/user-types";
+import { HttpResponse } from "@/lib/http-types";
+import { initialApplication, InitialApplicationType } from "@/lib/loan-form-types";
+import { useToast } from "@/hooks/use-toast";
 
 const initialCategories: Categories = {
   products: [],
@@ -44,19 +43,20 @@ export default function ApplicationCreate() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [categories, setCategories] = useState<Categories>(initialCategories)
   const [productSelected, setProductSelected] = useState<LoanProductResponse>()
-  const {toast} = useToast()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const { toast } = useToast()
 
   const onSetCategories = (category: Partial<Categories>) => {
-    setCategories(prevState => ({...prevState, ...category}));
+    setCategories(prevState => ({ ...prevState, ...category }));
   }
 
   useEffect(() => {
     const fetch = async () => {
       try {
         const res: HttpResponse<CategoryItem[]> = await CategoryApi.getProducts();
-        onSetCategories({"products": res.data.data});
-      } catch (e) {
-        console.error(e)
+        onSetCategories({ "products": res.data.data });
+      } catch {
+        // silent — product list shows empty on failure
       }
     }
     fetch()
@@ -81,6 +81,7 @@ export default function ApplicationCreate() {
 
   const onSubmit = async () => {
     if (!validateCurrentStep()) return
+    setIsSubmitting(true)
     try {
       const payload: ApplicationRequest = {
         productId: Number(formData.productId),
@@ -97,44 +98,38 @@ export default function ApplicationCreate() {
           customerName: formData.customerName,
           dateOfBirth: formData.dateOfBirth,
           username: formData.phoneNumber,
-          type: "CLIENT"
+          type: USER_TYPE.CLIENT,
         }
       }
       const res = await ApplicationApi.createApplication(payload)
       if (res.status === 200) {
-        setStatus(prevState => ({...prevState, success: true, message: "Application create successfully."}))
-        toast({title: "Success", description: "Create loan application"})
+        setStatus(prevState => ({ ...prevState, success: true, message: "Application create successfully." }))
+        toast({ title: "Success", description: "Create loan application" })
       }
-    } catch (e) {
-      setStatus(prevState => ({...prevState, success: false, message: "Application create failed."}))
-      console.error(e)
+    } catch {
+      setStatus(prevState => ({ ...prevState, success: false, message: "Application create failed." }))
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
   const onChange = (partial: Partial<InitialApplicationType>) => {
-    setFormData(prevState => ({...prevState, ...partial}))
-  }
-
-  const getTenureOfProduct = () => {
-  }
-
-  const getAmountOfProduct = () => {
+    setFormData(prevState => ({ ...prevState, ...partial }))
   }
 
   const onSelectedProduct = async (value: CategoryItem["value"]) => {
     try {
       const res: HttpResponse<ProductPropertiesResponse> = await CategoryApi.getProductPropertiesById(value)
       const productRes: HttpResponse<LoanProductResponse> = await CategoryApi.getProductById(value)
-      onSetCategories({"productProperties": res.data.data});
+      onSetCategories({ "productProperties": res.data.data });
       setProductSelected(productRes.data.data)
-    } catch (e) {
-      console.error(e)
+    } catch {
+      // silent — product properties unavailable
     }
   }
 
   return (
     <main className="flex-1 md:ml-0">
-      {/* Header */}
       <header className="border-b border-border bg-card">
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           <div>
@@ -155,6 +150,7 @@ export default function ApplicationCreate() {
               errors={errors}
               categories={categories}
               productSelected={productSelected}
+              isLoading={isSubmitting}
               onSelectedProduct={onSelectedProduct}
               onChange={onChange}
               onSubmit={onSubmit}
@@ -162,8 +158,7 @@ export default function ApplicationCreate() {
           </CardContent>
         </Card>
       </div>
-      <Toaster/>
+      <Toaster />
     </main>
-
   )
 }
