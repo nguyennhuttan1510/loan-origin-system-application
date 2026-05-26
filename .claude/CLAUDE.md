@@ -5,13 +5,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-pnpm dev        # Start Next.js development server
-pnpm build      # Build for production
-pnpm start      # Start production server
-pnpm lint       # Run ESLint
+pnpm dev          # Start Next.js development server
+pnpm build        # Build for production
+pnpm start        # Start production server
+pnpm lint         # Run ESLint
+pnpm test         # Run unit tests (Vitest)
+pnpm test:watch   # Watch mode
 ```
 
-There is no test suite configured.
+Tests live in `lib/__tests__/`. See `.claude/skills/unit-test.md` for patterns.
 
 ## Architecture
 
@@ -55,7 +57,7 @@ All 59 primitives live in `/components/ui/` and are generated/managed by **shadc
 
 Code review là **bắt buộc** trước mỗi push. Hệ thống dùng một agent độc lập chạy Claude Sonnet, hoàn toàn tách khỏi main conversation để đảm bảo tính khách quan.
 
-**Tiêu chí:** `.claude/skills/review.md` (8 rules R1–R5 Critical, R6–R8 Warning)
+**Tiêu chí:** `.claude/skills/review.md` (10 rules R1–R5, R9 Critical, R6–R8, R10 Warning)
 
 **Tự động (pre-push hook):** Sau khi setup, mỗi `git push` tự động trigger agent — push bị block nếu có Critical issue.
 
@@ -79,6 +81,8 @@ bash .claude/scripts/setup-hooks.sh
 | R6 | Button gọi API phải có loading state + disabled | Warning |
 | R7 | Không dùng `useState` cho derived value | Warning |
 | R8 | State isolate đúng cấp, tránh re-render thừa | Warning |
+| R9 | Không để lỗ hổng XSS (`dangerouslySetInnerHTML`, href injection) | Critical |
+| R10 | Catch block không được rỗng, phải xử lý hoặc có comment | Warning |
 
 ---
 
