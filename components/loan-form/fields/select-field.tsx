@@ -19,14 +19,15 @@ interface SelectFieldProps {
   value: string
   onChange: (value: string) => void
   error?: string
+  disabled?: boolean
 }
 
-export function SelectField({ name, label, options, placeholder, value, onChange, error }: SelectFieldProps) {
+export function SelectField({ name, label, options, placeholder, value, onChange, error, disabled }: SelectFieldProps) {
   return (
     <div className="flex flex-col gap-2">
       <Label htmlFor={name}>{label}</Label>
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger id={name} className={error ? "border-destructive" : ""}>
+        <SelectTrigger id={name} className={error ? "border-destructive" : ""} disabled={disabled}>
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
