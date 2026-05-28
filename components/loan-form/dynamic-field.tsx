@@ -3,6 +3,7 @@
 import { TextField } from "@/components/loan-form/fields/text-field"
 import { SelectField } from "@/components/loan-form/fields/select-field"
 import { TextareaField } from "@/components/loan-form/fields/textarea-field"
+import { useCategoryOptions } from "@/hooks/use-category-options"
 import type { FieldSchema } from "@/lib/field-schema/types"
 import type { FieldVisibility } from "@/lib/form-config-types"
 
@@ -26,17 +27,20 @@ function buildLabel(field: FieldSchema, channelVisibility?: FieldVisibility) {
 
 export function DynamicField({ field, value, onChange, error, channelVisibility }: DynamicFieldProps) {
   const label = buildLabel(field, channelVisibility)
+  const { options: remoteOptions, isLoading } = useCategoryOptions(field.categoryId)
 
   if (field.type === "select") {
+    const options = field.categoryId ? remoteOptions : (field.options ?? [])
     return (
       <SelectField
         name={field.name}
         label={label}
-        options={field.options ?? []}
-        placeholder={field.placeholder ?? `Chọn ${field.label?.toLowerCase()}`}
+        options={options}
+        placeholder={isLoading ? "Đang tải..." : (field.placeholder ?? `Chọn ${field.label?.toLowerCase()}`)}
         value={value}
         onChange={onChange}
         error={error}
+        disabled={isLoading}
       />
     )
   }
