@@ -1,5 +1,5 @@
 import http from "@/lib/http";
-import {ProductPropertiesRequest} from "@/lib/apis/category-types";
+import { CategoryOptionDto, ProductPropertiesRequest } from "@/lib/apis/category-types";
 
 const Category = {
   /*
@@ -16,6 +16,9 @@ const Category = {
   * */
 
   getRolesByAuth: () => http.get(`/categories/roles`),
+
+  getCategoryOptions: (categoryId: string) =>
+    http.get<{ success: boolean; data: CategoryOptionDto[] }>(`/categories/options/${categoryId}`),
 }
 
 export default Category;

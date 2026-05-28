@@ -43,6 +43,8 @@ export interface FieldSchema {
   placeholder?: string
   /** Only for type="select" */
   options?: SelectOption[]
+  /** Category ID to fetch options from API (replaces hardcoded `options`) */
+  categoryId?: string
   /** Grid column span in the 2-col grid. Separators default to 2. */
   colSpan?: 1 | 2
   /** Recursive AND/OR condition tree. Field hidden when condition is false. */

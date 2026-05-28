@@ -24,3 +24,9 @@ export interface LoanProductResponse {
   productName: string,
   type: string,
 }
+
+export interface CategoryOptionDto {
+  title: string
+  code: string
+  description: string | null
+}
