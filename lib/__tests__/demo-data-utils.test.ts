@@ -105,9 +105,14 @@ describe("fillDemoData", () => {
       expect(result.customerIncome.monthlyIncome).toBe("30000000")
     })
 
-    it("map otherIncome → additionalIncome thành string", () => {
+    it("map otherIncome → additionalIncome thành string (rỗng khi = 0)", () => {
       const result = fillDemoData(baseSeed)
-      expect(result.customerIncome.additionalIncome).toBe("0")
+      expect(result.customerIncome.additionalIncome).toBe("")
+    })
+
+    it("map otherIncome → additionalIncome thành string khi > 0", () => {
+      const result = fillDemoData({ ...baseSeed, otherIncome: 5_000_000 })
+      expect(result.customerIncome.additionalIncome).toBe("5000000")
     })
 
     it("map monthlyDebtPayments → installmentExpenses thành string", () => {
@@ -132,9 +137,14 @@ describe("fillDemoData", () => {
       expect(result.loanInfo.loanPurpose).toBe("Tiêu dùng cá nhân")
     })
 
-    it("map loanProductCode → loanType", () => {
+    it("map loanType từ seed.loanType (rỗng khi không có)", () => {
       const result = fillDemoData(baseSeed)
-      expect(result.loanInfo.loanType).toBe("PL-001")
+      expect(result.loanInfo.loanType).toBe("")
+    })
+
+    it("map loanType từ seed.loanType khi được cung cấp", () => {
+      const result = fillDemoData({ ...baseSeed, loanType: "consumer" })
+      expect(result.loanInfo.loanType).toBe("consumer")
     })
   })
 
