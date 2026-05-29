@@ -46,4 +46,53 @@ export interface LoanApplicationSeed {
   decisionReason: string
   submittedAt: string
   reviewedAt?: string
+  // form fields — customerInfo
+  dateOfBirth?: string
+  nationalId?: string
+  nationalIdIssueDate?: string
+  nationalIdIssuePlace?: string
+  email?: string
+  phone?: string
+  bidvRelationship?: string
+  // form fields — customerIncome
+  employerAddress?: string
+  employerPhone?: string
+  businessIncome?: string
+  rentalIncome?: string
+  incomeSource?: string
+  livingExpenses?: string
+  realEstateAssets?: string
+  movableAssets?: string
+  depositAssets?: string
+  // form fields — customerRelationship
+  referenceName1?: string
+  referencePhone1?: string
+  referenceRelation1?: string
+  referenceAddress1?: string
+  existingCustomer?: string
+  accountNumber?: string
+  // form fields — customerLocation
+  permanentAddress?: string
+  addressLine1?: string
+  addressLine2?: string
+  city?: string
+  state?: string
+  postalCode?: string
+  country?: string
+  residenceType?: string
+  yearsAtAddress?: string
+  // form fields — loanInfo
+  loanType?: string
+  loanMethod?: string
+  repaymentSource?: string
+  principalRepaymentPeriod?: string
+  interestRepaymentPeriod?: string
+  principalRepaymentMethod?: string
+  repaymentMethod?: string
+  collateralType?: string
+  collateralValue?: string
+  collateralAddress?: string
+  collateralOwnerType?: string
+  insurancePackage?: string
+  insurancePaymentMethod?: string
 }
