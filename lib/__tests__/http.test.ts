@@ -44,13 +44,13 @@ describe("http — response interceptor (401 / refresh)", () => {
     const error = {
       response: { status: 401 },
       // url matches the refresh endpoint — isRefreshing would be true at this point
-      config: { url: "/api/auth/refresh" },
+      config: { url: "/auth/refresh" },
     }
     await expect(rejected(error)).rejects.toBeDefined()
     expect(window.location.href).toBe("/login")
   })
 
-  it("gọi /api/auth/refresh khi gặp 401 lần đầu", async () => {
+  it("gọi /auth/refresh khi gặp 401 lần đầu", async () => {
     const { http, rejected } = await getHandler()
     const postSpy = vi.spyOn(http, "post").mockResolvedValueOnce({ data: {} })
 
@@ -60,7 +60,7 @@ describe("http — response interceptor (401 / refresh)", () => {
     }
     // Refresh is called; retry will fail (no real server in test env) — that's expected
     await expect(rejected(error)).rejects.toBeDefined()
-    expect(postSpy).toHaveBeenCalledWith("/api/auth/refresh")
+    expect(postSpy).toHaveBeenCalledWith("/auth/refresh")
   })
 
   it("redirects to /login và reject khi refresh call thất bại", async () => {
