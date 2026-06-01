@@ -84,19 +84,38 @@ const initialData: LoanFormData = {
 interface LoanFormWizardProps {
   channel?: FormChannel
   productId?: number
+  initialFormData?: Partial<LoanFormData>
+  onSubmitOverride?: (data: LoanFormData) => Promise<void>
+  mode?: 'create' | 'edit'
 }
 
-export function LoanFormWizard({ channel = "STAFF", productId }: LoanFormWizardProps) {
+export function LoanFormWizard({
+  channel = "STAFF",
+  productId,
+  initialFormData,
+  onSubmitOverride,
+  mode = 'create',
+}: LoanFormWizardProps) {
   return (
     <FormConfigProvider channel={channel} productId={productId}>
-      <LoanFormWizardEngine />
+      <LoanFormWizardEngine
+        initialFormData={initialFormData}
+        onSubmitOverride={onSubmitOverride}
+        mode={mode}
+      />
     </FormConfigProvider>
   )
 }
 
 // ─── Engine — reads config from context ──────────────────────────────────────
 
-function LoanFormWizardEngine() {
+interface LoanFormWizardEngineProps {
+  initialFormData?: Partial<LoanFormData>
+  onSubmitOverride?: (data: LoanFormData) => Promise<void>
+  mode?: 'create' | 'edit'
+}
+
+function LoanFormWizardEngine({ initialFormData, onSubmitOverride, mode = 'create' }: LoanFormWizardEngineProps) {
   const { formConfig, isLoading } = useFormConfig()
 
   const activeSteps = useMemo(
@@ -107,7 +126,15 @@ function LoanFormWizardEngine() {
   const contentSteps = useMemo(() => activeSteps.filter((s) => s.id !== 6), [activeSteps])
 
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
-  const [formData, setFormData] = useState<LoanFormData>(initialData)
+  const [formData, setFormData] = useState<LoanFormData>(() => ({
+    ...initialData,
+    ...initialFormData,
+    customerInfo: { ...initialData.customerInfo, ...initialFormData?.customerInfo },
+    customerIncome: { ...initialData.customerIncome, ...initialFormData?.customerIncome },
+    customerRelationship: { ...initialData.customerRelationship, ...initialFormData?.customerRelationship },
+    customerLocation: { ...initialData.customerLocation, ...initialFormData?.customerLocation },
+    loanInfo: { ...initialData.loanInfo, ...initialFormData?.loanInfo },
+  }))
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -222,7 +249,11 @@ function LoanFormWizardEngine() {
     setIsSubmitting(true)
     setSubmitError(null)
     try {
-      await new Promise((r) => setTimeout(r, 800)) // placeholder
+      if (onSubmitOverride) {
+        await onSubmitOverride(formData)
+      } else {
+        await new Promise((r) => setTimeout(r, 800)) // placeholder
+      }
       localStorage.removeItem(DRAFT_KEY(formConfig.channel))
       setIsSubmitted(true)
     } catch (err: unknown) {
@@ -231,15 +262,15 @@ function LoanFormWizardEngine() {
     } finally {
       setIsSubmitting(false)
     }
-  }, [formConfig])
+  }, [formConfig, formData, onSubmitOverride])
 
   const handleSubmit = useCallback(async () => {
-    if (formConfig.features.requiresOtp && otpState !== "verified") {
+    if (mode !== 'edit' && formConfig.features.requiresOtp && otpState !== "verified") {
       setOtpState("pending")
       return
     }
     await doSubmit()
-  }, [formConfig.features.requiresOtp, otpState, doSubmit])
+  }, [mode, formConfig.features.requiresOtp, otpState, doSubmit])
 
   const verifyOtp = useCallback(async () => {
     if (otpValue.length === 6) {
@@ -257,13 +288,20 @@ function LoanFormWizardEngine() {
           <Send className="h-7 w-7 text-success" />
         </div>
         <div className="flex flex-col gap-2">
-          <h2 className="text-2xl font-semibold text-foreground">Application Submitted</h2>
+          <h2 className="text-2xl font-semibold text-foreground">
+            {mode === 'edit' ? 'Cập nhật thành công' : 'Application Submitted'}
+          </h2>
           <p className="text-muted-foreground max-w-md">
-            The loan application for{" "}
-            <span className="font-medium text-foreground">
-              {formData.customerInfo.firstName} {formData.customerInfo.lastName}
-            </span>{" "}
-            has been submitted successfully. You will receive a confirmation shortly.
+            {mode === 'edit'
+              ? 'Thông tin hồ sơ vay đã được cập nhật.'
+              : <>
+                  The loan application for{" "}
+                  <span className="font-medium text-foreground">
+                    {formData.customerInfo.firstName} {formData.customerInfo.lastName}
+                  </span>{" "}
+                  has been submitted successfully. You will receive a confirmation shortly.
+                </>
+            }
           </p>
         </div>
         <Button
@@ -412,7 +450,7 @@ function LoanFormWizardEngine() {
               {isSubmitting
                 ? <Loader2 className="h-4 w-4 animate-spin" />
                 : <Send className="h-4 w-4" />}
-              Submit Application
+              {mode === 'edit' ? 'Cập nhật hồ sơ' : 'Submit Application'}
             </Button>
           )}
         </div>
