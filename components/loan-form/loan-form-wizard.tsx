@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback, useMemo, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -117,6 +118,7 @@ interface LoanFormWizardEngineProps {
 
 function LoanFormWizardEngine({ initialFormData, onSubmitOverride, mode = 'create' }: LoanFormWizardEngineProps) {
   const { formConfig, isLoading } = useFormConfig()
+  const router = useRouter()
 
   const activeSteps = useMemo(
     () => formConfig.steps.filter((s) => s.enabled),
@@ -157,10 +159,10 @@ function LoanFormWizardEngine({ initialFormData, onSubmitOverride, mode = 'creat
   // ── Draft persistence ──────────────────────────────────────────────────────
 
   useEffect(() => {
-    if (!formConfig.features.saveAndResume) return
+    if (mode === 'edit' || !formConfig.features.saveAndResume) return
     const saved = localStorage.getItem(DRAFT_KEY(formConfig.channel))
     if (saved) setHasDraft(true)
-  }, [formConfig])
+  }, [mode, formConfig])
 
   const continueDraft = useCallback(() => {
     const saved = localStorage.getItem(DRAFT_KEY(formConfig.channel))
@@ -177,12 +179,12 @@ function LoanFormWizardEngine({ initialFormData, onSubmitOverride, mode = 'creat
   }, [formConfig.channel])
 
   useEffect(() => {
-    if (!formConfig.features.saveAndResume || hasDraft) return
+    if (mode === 'edit' || !formConfig.features.saveAndResume || hasDraft) return
     localStorage.setItem(
       DRAFT_KEY(formConfig.channel),
       JSON.stringify({ data: formData, stepIndex: currentStepIndex }),
     )
-  }, [formData, currentStepIndex, formConfig, hasDraft])
+  }, [mode, formData, currentStepIndex, formConfig, hasDraft])
 
   // ── Step data update ───────────────────────────────────────────────────────
 
@@ -306,6 +308,10 @@ function LoanFormWizardEngine({ initialFormData, onSubmitOverride, mode = 'creat
         </div>
         <Button
           onClick={() => {
+            if (mode === 'edit') {
+              router.push('/applications')
+              return
+            }
             setFormData(initialData)
             setCurrentStepIndex(0)
             setIsSubmitted(false)
@@ -315,7 +321,7 @@ function LoanFormWizardEngine({ initialFormData, onSubmitOverride, mode = 'creat
           variant="outline"
         >
           <FileText className="mr-2 h-4 w-4" />
-          Start New Application
+          {mode === 'edit' ? 'Về danh sách hồ sơ' : 'Start New Application'}
         </Button>
       </div>
     )

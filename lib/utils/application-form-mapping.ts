@@ -142,30 +142,10 @@ export function mapFormDataToUpdateRequest(data: LoanFormData): UpdateApplicatio
         }
       : undefined;
 
-  // customerInfo (từ customerLocation step)
-  const customerInfoPayload: UpdateApplicationRequest['customerInfo'] =
-    customerLocation.permanentAddress
-      ? {
-          age: 0,
-          maritalStatus: 'SINGLE',
-          educationLevel: 'BACHELOR',
-          residenceType: customerLocation.residenceType || 'OWN',
-          permanentAddress: customerLocation.permanentAddress,
-          currentAddress: customerLocation.addressLine1 || customerLocation.permanentAddress,
-          emergencyContactPhone: '',
-          emergencyContactName: '',
-          emergencyContactRelationship: '',
-          residenceDurationMonths: customerLocation.yearsAtAddress
-            ? Math.round(parseFloat(customerLocation.yearsAtAddress) * 12)
-            : undefined,
-        }
-      : undefined;
-
   return {
     ...(jobInfo && { jobInfo }),
     ...(financeInfo && { financeInfo }),
     ...(assetsInfo && { assetsInfo }),
     ...(loanInfoPayload && { loanInfo: loanInfoPayload }),
-    ...(customerInfoPayload && { customerInfo: customerInfoPayload }),
   };
 }
