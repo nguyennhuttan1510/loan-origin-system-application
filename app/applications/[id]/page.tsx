@@ -9,9 +9,11 @@ import { Sidebar } from '@/components/dashboard/sidebar';
 import { ApplicationStatusBadge } from '@/components/underwriting/application-status-badge';
 import { LoanFormWizard } from '@/components/loan-form/loan-form-wizard';
 import Application from '@/lib/apis/application';
-import { mapDetailToFormData, mapFormDataToUpdateRequest } from '@/lib/utils/application-form-mapping';
-import { UnderwritingDetailResponse } from '@/lib/apis/underwriting-types';
+import { mapFormDataToUpdateRequest } from '@/lib/utils/application-form-mapping';
+import { fillDemoData } from '@/lib/demo-data-utils';
+import type { LoanApplicationSeed } from '@/lib/apis/seeder-types';
 import type { LoanFormData } from '@/lib/loan-form-types';
+import { ApplicationStatus } from '@/lib/apis/underwriting-types';
 import { hasAnyRole, UNDERWRITING_ROLES } from '@/lib/constants/user-types';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
@@ -22,7 +24,7 @@ export default function ApplicationDetailPage() {
   const params = useParams();
   const id = Number(params.id);
 
-  const [detail, setDetail] = useState<UnderwritingDetailResponse | null>(null);
+  const [seed, setSeed] = useState<LoanApplicationSeed | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -38,7 +40,7 @@ export default function ApplicationDetailPage() {
     setIsLoading(true);
     try {
       const res = await Application.getApplicationDetail(id);
-      setDetail(res.data?.data ?? null);
+      setSeed(res.data?.data ?? null);
     } catch {
       toast({ title: 'Lỗi', description: 'Không tải được thông tin hồ sơ.', variant: 'destructive' });
     } finally {
@@ -79,7 +81,7 @@ export default function ApplicationDetailPage() {
               </Link>
               <span>/</span>
               <span className="font-medium text-foreground truncate max-w-[200px]">
-                {isLoading ? '...' : (detail?.applicationNumber ?? String(id))}
+                {isLoading ? '...' : (seed?.applicationNumber ?? String(id))}
               </span>
             </nav>
 
@@ -92,10 +94,13 @@ export default function ApplicationDetailPage() {
               </Button>
               <div>
                 <h1 className="text-xl font-bold text-foreground">
-                  {isLoading ? 'Loading...' : (detail?.applicationNumber ?? `Application #${id}`)}
+                  {isLoading ? 'Loading...' : (seed?.applicationNumber ?? `Application #${id}`)}
                 </h1>
-                {detail && (
-                  <ApplicationStatusBadge status={detail.status} className="mt-1" />
+                {seed && (
+                  <ApplicationStatusBadge
+                    status={seed.status as ApplicationStatus}
+                    className="mt-1"
+                  />
                 )}
               </div>
             </div>
@@ -108,10 +113,10 @@ export default function ApplicationDetailPage() {
             <div className="flex items-center justify-center py-24">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
-          ) : detail ? (
+          ) : seed ? (
             <LoanFormWizard
               mode="edit"
-              initialFormData={mapDetailToFormData(detail)}
+              initialFormData={fillDemoData(seed)}
               onSubmitOverride={handleSubmitUpdate}
             />
           ) : (
