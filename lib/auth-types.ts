@@ -8,7 +8,7 @@ export interface User {
   nationalId?: string;
   username?: string;
   createdAt: Date;
-  role: UserType;
+  roles: UserType[];
 }
 
 export interface AuthContextType {
@@ -25,12 +25,12 @@ export interface AuthResponse {
   accessToken: string;
 }
 
+/** Shape returned by GET /me */
 export interface UserResponse {
-  id: string;
+  userId: string;
   username: string;
-  phoneNumber: string;
-  nationalId: string;
-  type: UserType;
+  userType: string;
+  roles: string[];
 }
 
 export interface RegisterClientRequest {

@@ -10,10 +10,13 @@ import {
   LogOut,
   Key,
   Menu,
-  X, Users
+  X,
+  Users,
+  ShieldCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
+import { hasAnyRole, UNDERWRITING_ROLES, USER_TYPE } from '@/lib/constants/user-types';
 
 const navigationItems = [
   {
@@ -21,30 +24,42 @@ const navigationItems = [
     href: '/dashboard',
     icon: LayoutDashboard,
     adminOnly: false,
+    underwritingOnly: false,
   },
   {
     label: 'Applications',
     href: '/applications',
     icon: FileText,
     adminOnly: false,
+    underwritingOnly: false,
   },
   {
     label: 'New Application',
     href: '/application',
     icon: FileText,
     adminOnly: false,
+    underwritingOnly: false,
   },
   {
     label: 'Staff Management',
     href: '/staff',
     icon: Users,
     adminOnly: false,
+    underwritingOnly: false,
+  },
+  {
+    label: 'Underwriting',
+    href: '/underwriting',
+    icon: ShieldCheck,
+    adminOnly: false,
+    underwritingOnly: true,
   },
   {
     label: 'Field Schema Settings',
     href: '/admin/setting',
     icon: Settings,
     adminOnly: true,
+    underwritingOnly: false,
   },
 ];
 
@@ -53,7 +68,8 @@ export function Sidebar() {
   const router = useRouter();
   const { logout, user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-  const isAdmin = user?.role === 'ADMIN';
+  const isAdmin = hasAnyRole(user?.roles, USER_TYPE.ADMIN, USER_TYPE.SUPER_ADMIN);
+  const canAccessUnderwriting = hasAnyRole(user?.roles, ...UNDERWRITING_ROLES);
 
   const handleLogout = () => {
     logout();
@@ -100,7 +116,11 @@ export function Sidebar() {
           {/* Navigation */}
           <nav className="flex-1 space-y-2 px-4 py-6">
             {navigationItems
-              .filter((item) => !item.adminOnly || isAdmin)
+              .filter((item) => {
+                if (item.adminOnly && !isAdmin) return false;
+                if (item.underwritingOnly && !canAccessUnderwriting) return false;
+                return true;
+              })
               .map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.href || pathname.startsWith(item.href + '/');

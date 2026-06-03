@@ -17,6 +17,7 @@ import type { FieldSchema } from "@/lib/field-schema/types"
 import type { FieldSchemaOverride, FieldSchemaOverrideMap } from "@/lib/field-schema-override-types"
 import { EMPTY_OVERRIDE_MAP } from "@/lib/field-schema-override-types"
 import { useAuth } from "@/lib/auth-context"
+import { hasAnyRole, USER_TYPE } from "@/lib/constants/user-types"
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -117,7 +118,7 @@ export default function AdminSettingPage() {
   useEffect(() => {
     if (authLoading) return
     if (!user) { router.replace("/login"); return }
-    if (user.role !== "ADMIN") { router.replace("/dashboard"); return }
+    if (!hasAnyRole(user.roles, USER_TYPE.ADMIN, USER_TYPE.SUPER_ADMIN)) { router.replace("/dashboard"); return }
   }, [user, authLoading, router])
 
   // ── Fetch overrides ──────────────────────────────────────────────────────────
@@ -137,7 +138,7 @@ export default function AdminSettingPage() {
   }, [])
 
   useEffect(() => {
-    if (user?.role === "ADMIN") fetchOverrides()
+    if (hasAnyRole(user?.roles, USER_TYPE.ADMIN, USER_TYPE.SUPER_ADMIN)) fetchOverrides()
   }, [user, fetchOverrides])
 
   // ── Merged schemas ───────────────────────────────────────────────────────────
@@ -312,7 +313,7 @@ export default function AdminSettingPage() {
 
   // ── Guard: wait for auth ──────────────────────────────────────────────────────
 
-  if (authLoading || !user || user.role !== "ADMIN") {
+  if (authLoading || !user || !hasAnyRole(user.roles, USER_TYPE.ADMIN, USER_TYPE.SUPER_ADMIN)) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />

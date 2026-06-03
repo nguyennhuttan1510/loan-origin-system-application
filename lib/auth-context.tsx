@@ -4,6 +4,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import http from '@/lib/http';
 import { AuthContextType, RegisterClientRequest, User, UserResponse } from '@/lib/auth-types';
+import { UserType } from '@/lib/constants/user-types';
 import { HttpResponse } from '@/lib/http-types';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -24,14 +25,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const res: HttpResponse<UserResponse> = await http.get('/me');
       const data = res.data?.data ?? res.data as unknown as UserResponse;
       setUser({
-        id:          data.id,
-        email:       data.username,
-        name:        data.username,
-        username:    data.username,
-        nationalId:  data.nationalId,
-        phoneNumber: data.phoneNumber,
-        createdAt:   new Date(),
-        role:        data.type,
+        id:        data.userId,
+        email:     data.username,
+        name:      data.username,
+        username:  data.username,
+        createdAt: new Date(),
+        roles:     (data.roles ?? []) as UserType[],
       });
     } catch (e) {
       console.error(e);

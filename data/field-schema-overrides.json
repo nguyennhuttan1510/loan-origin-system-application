@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updatedAt": "2026-05-11T17:11:00.750Z",
+  "updatedAt": "2026-06-01T09:22:33.057Z",
   "overrides": {
     "1:lastName": {
       "label": "Tên",
@@ -13,7 +13,7 @@
       "visibleWhen": {
         "field": "employmentStatus",
         "op": "eq",
-        "value": "unemployed"
+        "value": "employed"
       }
     }
   }

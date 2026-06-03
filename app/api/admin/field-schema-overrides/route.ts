@@ -4,21 +4,27 @@ import { NextRequest, NextResponse } from "next/server"
 import type { FieldSchemaOverrideMap } from "@/lib/field-schema-override-types"
 import { EMPTY_OVERRIDE_MAP } from "@/lib/field-schema-override-types"
 import { STEP_FIELD_SCHEMAS } from "@/lib/field-schema"
+import {USER_TYPE} from "@/lib/constants/user-types";
+import {headers} from "next/dist/server/request/headers";
 
 const OVERRIDE_FILE = path.join(process.cwd(), "data", "field-schema-overrides.json")
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080"
+const API_BASE = `${process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080"}/api`
 
 async function verifyAdmin(request: NextRequest): Promise<boolean> {
-  const authHeader = request.headers.get("Authorization")
-  if (!authHeader?.startsWith("Bearer ")) return false
-
+  const headers = request.headers
+  console.log("headers", headers)
   try {
     const res = await fetch(`${API_BASE}/me`, {
-      headers: { Authorization: authHeader },
+      headers: {
+        'Cookie': headers.get('cookie') ?? '',
+        // forward thêm nếu cần
+        'Authorization': headers.get('authorization') ?? '',
+      },
     })
     if (!res.ok) return false
     const body = await res.json()
-    return body?.data?.type === "ADMIN"
+    const roles = body?.roles
+    return Array.isArray(roles) && roles.includes(USER_TYPE.ADMIN)
   } catch {
     return false
   }
@@ -47,6 +53,7 @@ function fieldExists(stepId: number, fieldName: string): boolean {
 // ─── GET ──────────────────────────────────────────────────────────────────────
 
 export async function GET(request: NextRequest) {
+  console.log("verifyAdmin", await verifyAdmin(request))
   if (!(await verifyAdmin(request))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
