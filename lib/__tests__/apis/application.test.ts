@@ -67,12 +67,10 @@ describe("Application API", () => {
   })
 
   describe("getApplicationDetail", () => {
-    it("gọi đúng endpoint GET /loan-application/:id/underwriting-detail", async () => {
+    it("gọi đúng endpoint GET /loan-application/:id", async () => {
       vi.mocked(http.get).mockResolvedValue({ data: { data: {} } })
       await Application.getApplicationDetail(42)
-      expect(http.get).toHaveBeenCalledWith(
-        "/loan-application/42/underwriting-detail"
-      )
+      expect(http.get).toHaveBeenCalledWith("/loan-application/42")
     })
   })
 
