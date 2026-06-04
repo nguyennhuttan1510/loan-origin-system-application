@@ -90,6 +90,7 @@ export function mapFormDataToUpdateRequest(data: LoanFormData): UpdateApplicatio
           employmentType: customerIncome.employmentStatus,
           employerName: customerIncome.employerName || '',
           employerAddress: customerIncome.employerAddress || undefined,
+          employerPhone: customerIncome.employerPhone || undefined,
           jobTitle: customerIncome.jobTitle || undefined,
           employmentDurationMonths: customerIncome.yearsEmployed
             ? Math.round(parseFloat(customerIncome.yearsEmployed) * 12)
@@ -103,6 +104,8 @@ export function mapFormDataToUpdateRequest(data: LoanFormData): UpdateApplicatio
     monthlyIncome != null
       ? {
           monthlyIncome,
+          businessIncome: safeNum(customerIncome.businessIncome),
+          rentalIncome: safeNum(customerIncome.rentalIncome),
           otherIncome: safeNum(customerIncome.additionalIncome),
           otherIncomeSource: customerIncome.incomeSource || undefined,
           monthlyExpenses: safeNum(customerIncome.livingExpenses),
@@ -139,14 +142,82 @@ export function mapFormDataToUpdateRequest(data: LoanFormData): UpdateApplicatio
           requestedRepaymentFrequency: loanInfo.repaymentMethod || 'MONTHLY',
           purpose: loanInfo.loanPurpose,
           purposeDetails: loanInfo.repaymentSource || loanInfo.loanPurpose,
+          loanMethod: loanInfo.loanMethod as 'INSTALLMENT' | 'CREDIT_LINE' | 'OVERDRAFT' | undefined || undefined,
+          repaymentSource: loanInfo.repaymentSource || undefined,
+          principalRepaymentPeriod: loanInfo.principalRepaymentPeriod || undefined,
+          interestRepaymentPeriod: loanInfo.interestRepaymentPeriod || undefined,
+          principalRepaymentMethod: loanInfo.principalRepaymentMethod as 'EQUAL' | 'INSTALLMENT_METHOD' | 'FLEXIBLE' | undefined || undefined,
+          repaymentAccountNumber: loanInfo.repaymentAccountNumber || undefined,
+          collateralType: loanInfo.collateralType as 'REAL_ESTATE' | 'VEHICLE' | 'DEPOSIT' | 'SECURITIES' | 'NONE' | undefined || undefined,
+          collateralOwnerType: loanInfo.collateralOwnerType as 'BORROWER' | 'SPOUSE' | 'CO_OWNER' | 'THIRD_PARTY' | undefined || undefined,
+          insurancePackage: loanInfo.insurancePackage as 'A' | 'B' | 'NONE' | undefined || undefined,
+          insurancePaymentMethod: loanInfo.insurancePaymentMethod as 'LUMP_SUM' | 'ANNUAL' | undefined || undefined,
+        }
+      : undefined;
+
+  // customerInfo
+  const { customerInfo: ci, customerRelationship: cr, customerLocation: cl } = data;
+  const age = ci.dateOfBirth
+    ? Math.max(0, new Date().getFullYear() - new Date(ci.dateOfBirth).getFullYear())
+    : 0;
+  const customerInfoPayload: UpdateApplicationRequest['customerInfo'] =
+    ci.maritalStatus
+      ? {
+          age,
+          gender: ci.gender as 'MALE' | 'FEMALE' | 'OTHER' | undefined,
+          maritalStatus: ci.maritalStatus,
+          numberOfDependents: 0,
+          educationLevel: 'OTHER',
+          residenceType: cl.residenceType,
+          residenceDurationMonths: cl.yearsAtAddress
+            ? Math.round(parseFloat(cl.yearsAtAddress) * 12)
+            : undefined,
+          permanentAddress: cl.permanentAddress,
+          currentAddress: cl.addressLine1,
+          emergencyContactPhone: cr.referencePhone1 || '',
+          emergencyContactName: cr.referenceName1 || '',
+          emergencyContactRelationship: cr.referenceRelation1 || '',
+          nationalIdIssueDate: ci.nationalIdIssueDate || undefined,
+          nationalIdIssuePlace: ci.nationalIdIssuePlace || undefined,
+          landlinePhone: ci.landlinePhone || undefined,
+          bidvRelationship: ci.bidvRelationship as 'EXISTING' | 'NEW' | undefined,
+          addressLine2: cl.addressLine2 || undefined,
+          city: cl.city || undefined,
+          state: cl.state || undefined,
+          postalCode: cl.postalCode || undefined,
+          country: cl.country || undefined,
+        }
+      : undefined;
+
+  // relationshipInfo
+  const relationshipInfo: UpdateApplicationRequest['relationshipInfo'] =
+    cr.referenceName1 || cr.coborrowerName || cr.existingCustomer
+      ? {
+          emergencyContactAddress: cr.referenceAddress1 || undefined,
+          referenceName2: cr.referenceName2 || undefined,
+          referencePhone2: cr.referencePhone2 || undefined,
+          referenceRelation2: cr.referenceRelation2 || undefined,
+          existingCustomer: cr.existingCustomer || undefined,
+          accountNumber: cr.accountNumber || undefined,
+          coborrowerName: cr.coborrowerName || undefined,
+          coborrowerDateOfBirth: cr.coborrowerDateOfBirth || undefined,
+          coborrowerGender: cr.coborrowerGender || undefined,
+          coborrowerIdNumber: cr.coborrowerIdNumber || undefined,
+          coborrowerIdIssueDate: cr.coborrowerIdIssueDate || undefined,
+          coborrowerIdIssuePlace: cr.coborrowerIdIssuePlace || undefined,
+          coborrowerCurrentAddress: cr.coborrowerCurrentAddress || undefined,
+          coborrowerMobilePhone: cr.coborrowerMobilePhone || undefined,
+          coborrowerMonthlyIncome: safeNum(cr.coborrowerMonthlyIncome),
         }
       : undefined;
 
   return {
+    ...(customerInfoPayload && { customerInfo: customerInfoPayload }),
     ...(jobInfo && { jobInfo }),
     ...(financeInfo && { financeInfo }),
     ...(assetsInfo && { assetsInfo }),
     ...(loanInfoPayload && { loanInfo: loanInfoPayload }),
+    ...(relationshipInfo && { relationshipInfo }),
   };
 }
 
@@ -168,86 +239,86 @@ export function loanApplicationToFormData(app: LoanApplication): LoanFormData {
     customerInfo: {
       firstName,
       lastName,
-      dateOfBirth: '',
+      dateOfBirth: '',                              // not support
       gender: s(app.gender),
       nationalId: app.borrower?.nationalId ?? '',
-      nationalIdIssueDate: '',
-      nationalIdIssuePlace: '',
+      nationalIdIssueDate: s(app.nationalIdIssueDate),
+      nationalIdIssuePlace: s(app.nationalIdIssuePlace),
       email: app.borrower?.email ?? '',
       phone: app.borrower?.phoneNumber ?? '',
-      landlinePhone: '',
+      landlinePhone: s(app.landlinePhone),
       maritalStatus: s(app.maritalStatus),
-      bidvRelationship: '',
+      bidvRelationship: s(app.bidvRelationship),
     },
     customerIncome: {
       employmentStatus: s(app.employmentType),
       employerName: s(app.employerName),
       employerAddress: s(app.employerAddress),
-      employerPhone: '',
+      employerPhone: s(app.employerPhone),
       jobTitle: s(app.jobTitle),
       yearsEmployed: app.employmentDurationMonths != null
         ? (app.employmentDurationMonths / 12).toFixed(1)
         : '',
       monthlyIncome: s(app.monthlyIncome),
-      businessIncome: '',
-      rentalIncome: '',
+      businessIncome: app.businessIncome != null ? s(app.businessIncome) : '',
+      rentalIncome: app.rentalIncome != null ? s(app.rentalIncome) : '',
       additionalIncome: app.otherIncome > 0 ? s(app.otherIncome) : '',
       incomeSource: s(app.incomeSource),
       livingExpenses: app.monthlyExpenses != null ? s(app.monthlyExpenses) : '',
       installmentExpenses: s(app.monthlyDebtPayments),
       realEstateAssets: app.totalAssets != null ? s(app.totalAssets) : '',
-      movableAssets: '',
-      depositAssets: '',
+      movableAssets: '',                          // not support
+      depositAssets: '',                          // not support
     },
     customerRelationship: {
-      coborrowerName: '',
-      coborrowerDateOfBirth: '',
-      coborrowerGender: '',
-      coborrowerIdNumber: '',
-      coborrowerIdIssueDate: '',
-      coborrowerIdIssuePlace: '',
-      coborrowerCurrentAddress: '',
-      coborrowerMobilePhone: '',
-      coborrowerMonthlyIncome: '',
-      referenceName1: '',
-      referencePhone1: '',
-      referenceRelation1: '',
-      referenceAddress1: '',
-      referenceName2: '',
-      referencePhone2: '',
-      referenceRelation2: '',
-      existingCustomer: '',
-      accountNumber: '',
+      referenceName1: s(app.emergencyContactName),
+      referencePhone1: s(app.emergencyContactPhone),
+      referenceRelation1: s(app.emergencyContactRelationship),
+      referenceAddress1: s(app.emergencyContactAddress),
+      referenceName2: s(app.referenceName2),
+      referencePhone2: s(app.referencePhone2),
+      referenceRelation2: s(app.referenceRelation2),
+      existingCustomer: s(app.existingCustomer),
+      accountNumber: s(app.accountNumber),
+      coborrowerName: s(app.coborrowerName),
+      coborrowerDateOfBirth: s(app.coborrowerDateOfBirth),
+      coborrowerGender: s(app.coborrowerGender),
+      coborrowerIdNumber: s(app.coborrowerIdNumber),
+      coborrowerIdIssueDate: s(app.coborrowerIdIssueDate),
+      coborrowerIdIssuePlace: s(app.coborrowerIdIssuePlace),
+      coborrowerCurrentAddress: s(app.coborrowerCurrentAddress),
+      coborrowerMobilePhone: s(app.coborrowerMobilePhone),
+      coborrowerMonthlyIncome: app.coborrowerMonthlyIncome != null ? s(app.coborrowerMonthlyIncome) : '',
     },
     customerLocation: {
       permanentAddress: s(app.permanentAddress),
       addressLine1: s(app.addressLine1),
-      addressLine2: '',
-      city: '',
-      state: '',
-      postalCode: '',
-      country: 'vn',
+      addressLine2: s(app.addressLine2),
+      city: s(app.city),
+      state: s(app.state),
+      postalCode: s(app.postalCode),
+      country: s(app.country) || 'vn',
       residenceType: s(app.residenceType),
       yearsAtAddress: s(app.yearsAtAddress),
     },
     loanInfo: {
       loanType: '',
-      loanMethod: '',
+      loanMethod: s(app.loanMethod),
       loanAmount: s(app.requestedAmount),
       loanTerm: s(app.requestedTenureMonths),
       loanPurpose: s(app.purpose),
-      repaymentSource: '',
-      principalRepaymentPeriod: '',
-      interestRepaymentPeriod: '',
-      principalRepaymentMethod: '',
+      repaymentSource: s(app.repaymentSource),
+      principalRepaymentPeriod: s(app.principalRepaymentPeriod),
+      interestRepaymentPeriod: s(app.interestRepaymentPeriod),
+      principalRepaymentMethod: s(app.principalRepaymentMethod),
       repaymentMethod: s(app.repaymentMethod),
-      repaymentAccountNumber: '',
-      collateralType: app.hasCollateral ? 'REAL_ESTATE' : '',
+      repaymentAccountNumber: s(app.repaymentAccountNumber),
+      collateralType: app.collateralType ?? (app.hasCollateral ? 'REAL_ESTATE' : ''),
       collateralValue: app.estimatedCollateralValue > 0 ? s(app.estimatedCollateralValue) : '',
       collateralAddress: s(app.collateralDescription),
-      collateralOwnerType: '',
-      insurancePackage: '',
-      insurancePaymentMethod: '',
+      collateralOwnerType: s(app.collateralOwnerType),
+      insurancePackage: s(app.insurancePackage),
+      insurancePaymentMethod: s(app.insurancePaymentMethod),
     },
   };
 }
