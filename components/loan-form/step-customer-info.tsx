@@ -157,11 +157,11 @@ export function StepCustomerInfo({ data, onChange, errors }: StepCustomerInfoPro
           </div>
         )}
 
-        {vis("bidvRelationship") !== "hidden" && (
+        {vis("hasRelationship") !== "hidden" && (
           <div className="flex flex-col gap-2 md:col-span-2">
-            <Label htmlFor="bidvRelationship">{optLabel("Quan hệ tín dụng với BIDV", "bidvRelationship")}</Label>
-            <Select value={data.bidvRelationship} onValueChange={(val) => onChange({ bidvRelationship: val })}>
-              <SelectTrigger className={errors.bidvRelationship ? "border-destructive" : ""}>
+            <Label htmlFor="hasRelationship">{optLabel("Quan hệ tín dụng với BIDV", "hasRelationship")}</Label>
+            <Select value={data.hasRelationship} onValueChange={(val) => onChange({ hasRelationship: val })}>
+              <SelectTrigger className={errors.hasRelationship ? "border-destructive" : ""}>
                 <SelectValue placeholder="Đã từng vay vốn tại BIDV?" />
               </SelectTrigger>
               <SelectContent>
@@ -169,7 +169,7 @@ export function StepCustomerInfo({ data, onChange, errors }: StepCustomerInfoPro
                 <SelectItem value="new">Chưa vay vốn tại BIDV</SelectItem>
               </SelectContent>
             </Select>
-            {errors.bidvRelationship && <p className="text-xs text-destructive">{errors.bidvRelationship}</p>}
+            {errors.hasRelationship && <p className="text-xs text-destructive">{errors.hasRelationship}</p>}
           </div>
         )}
 

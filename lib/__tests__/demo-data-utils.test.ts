@@ -5,7 +5,7 @@ import type { LoanApplicationSeed } from "@/lib/apis/seeder-types"
 const baseSeed: LoanApplicationSeed = {
   applicationNumber: "APP-2024-000001",
   borrowerName: "Nguyen Van An",
-  age: 32,
+  dateOfBirth: '1992-01-01',
   gender: "MALE",
   maritalStatus: "MARRIED",
   loanProductCode: "PL-001",

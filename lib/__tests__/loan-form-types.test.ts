@@ -31,7 +31,7 @@ const validCustomerInfo = {
   email: "an@example.com",
   phone: "0901234567",
   maritalStatus: "single",
-  bidvRelationship: "new",
+  hasRelationship: "new",
 }
 
 const validCustomerIncome = {

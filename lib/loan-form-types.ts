@@ -81,7 +81,7 @@ export const customerInfoSchema = z.object({
       "Điện thoại cố định không hợp lệ"
     ),
   maritalStatus: z.string().min(1, "Tình trạng hôn nhân là bắt buộc"),
-  bidvRelationship: z.string().min(1, "Quan hệ tín dụng với BIDV là bắt buộc"),
+  hasRelationship: z.string().min(1, "Quan hệ tín dụng với BIDV là bắt buộc"),
 })
 
 // --- Step 2: Thu nhập & Tài chính ---

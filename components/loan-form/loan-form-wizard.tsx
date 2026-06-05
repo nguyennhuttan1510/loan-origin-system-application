@@ -51,7 +51,7 @@ const initialData: LoanFormData = {
   customerInfo: {
     firstName: "", lastName: "", dateOfBirth: "", gender: "", nationalId: "",
     nationalIdIssueDate: "", nationalIdIssuePlace: "", email: "", phone: "",
-    landlinePhone: "", maritalStatus: "", bidvRelationship: "",
+    landlinePhone: "", maritalStatus: "", hasRelationship: "",
   },
   customerIncome: {
     employmentStatus: "", employerName: "", jobTitle: "", employerAddress: "",

@@ -53,7 +53,7 @@ export interface LoanApplicationSeed {
   nationalIdIssuePlace?: string
   email?: string
   phone?: string
-  bidvRelationship?: string
+  hasRelationship?: string
   // form fields — customerIncome
   employerAddress?: string
   employerPhone?: string

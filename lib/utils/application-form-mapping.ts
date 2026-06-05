@@ -79,6 +79,7 @@ const safeInt = (v: string | undefined): number | undefined => {
 };
 
 export function mapFormDataToUpdateRequest(data: LoanFormData): UpdateApplicationRequest {
+  console.log("mapFormDataToUpdateRequest - data", data)
   const { customerIncome, customerLocation, loanInfo } = data;
 
   const hasCollateral = loanInfo.collateralType !== '' && loanInfo.collateralType != null;
@@ -139,7 +140,7 @@ export function mapFormDataToUpdateRequest(data: LoanFormData): UpdateApplicatio
       ? {
           requestedAmount,
           requestedTenureMonths,
-          requestedRepaymentFrequency: loanInfo.repaymentMethod || 'MONTHLY',
+          requestedRepaymentFrequency: loanInfo.principalRepaymentPeriod || 'MONTHLY',
           purpose: loanInfo.loanPurpose,
           purposeDetails: loanInfo.repaymentSource || loanInfo.loanPurpose,
           loanMethod: loanInfo.loanMethod as 'INSTALLMENT' | 'CREDIT_LINE' | 'OVERDRAFT' | undefined || undefined,
@@ -157,13 +158,10 @@ export function mapFormDataToUpdateRequest(data: LoanFormData): UpdateApplicatio
 
   // customerInfo
   const { customerInfo: ci, customerRelationship: cr, customerLocation: cl } = data;
-  const age = ci.dateOfBirth
-    ? Math.max(0, new Date().getFullYear() - new Date(ci.dateOfBirth).getFullYear())
-    : 0;
   const customerInfoPayload: UpdateApplicationRequest['customerInfo'] =
     ci.maritalStatus
       ? {
-          age,
+          dateOfBirth: ci.dateOfBirth || undefined,
           gender: ci.gender as 'MALE' | 'FEMALE' | 'OTHER' | undefined,
           maritalStatus: ci.maritalStatus,
           numberOfDependents: 0,
@@ -180,7 +178,7 @@ export function mapFormDataToUpdateRequest(data: LoanFormData): UpdateApplicatio
           nationalIdIssueDate: ci.nationalIdIssueDate || undefined,
           nationalIdIssuePlace: ci.nationalIdIssuePlace || undefined,
           landlinePhone: ci.landlinePhone || undefined,
-          bidvRelationship: ci.bidvRelationship as 'EXISTING' | 'NEW' | undefined,
+          hasRelationship: ci.hasRelationship as 'EXISTING' | 'NEW' | undefined,
           addressLine2: cl.addressLine2 || undefined,
           city: cl.city || undefined,
           state: cl.state || undefined,
@@ -239,7 +237,7 @@ export function loanApplicationToFormData(app: LoanApplication): LoanFormData {
     customerInfo: {
       firstName,
       lastName,
-      dateOfBirth: '',                              // not support
+      dateOfBirth: s(app.dateOfBirth),
       gender: s(app.gender),
       nationalId: app.borrower?.nationalId ?? '',
       nationalIdIssueDate: s(app.nationalIdIssueDate),
@@ -248,7 +246,7 @@ export function loanApplicationToFormData(app: LoanApplication): LoanFormData {
       phone: app.borrower?.phoneNumber ?? '',
       landlinePhone: s(app.landlinePhone),
       maritalStatus: s(app.maritalStatus),
-      bidvRelationship: s(app.bidvRelationship),
+      hasRelationship: s(app.hasRelationship),
     },
     customerIncome: {
       employmentStatus: s(app.employmentType),

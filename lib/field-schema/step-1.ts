@@ -12,5 +12,5 @@ export const step1Fields: FieldSchema[] = [
   { name: "phone",                type: "tel",    label: "Điện thoại di động",         placeholder: "0901 234 567" },
   { name: "landlinePhone",        type: "tel",    label: "Điện thoại cố định",        placeholder: "024 1234 5678" },
   { name: "email",                type: "email",  label: "Email",                      placeholder: "email@example.com", colSpan: 2 },
-  { name: "bidvRelationship",     type: "select", label: "Quan hệ tín dụng với BIDV", categoryId: "bidv_relationship", colSpan: 2 },
+  { name: "hasRelationship",      type: "select", label: "Quan hệ tín dụng với BIDV", categoryId: "bidv_relationship", colSpan: 2 },
 ]

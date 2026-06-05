@@ -21,7 +21,7 @@ export const STAFF_FORM_CONFIG: FormConfig = {
     S(1, true, {
       firstName: "required", lastName: "required", dateOfBirth: "required",
       gender: "required", nationalId: "required", phone: "required",
-      email: "required", maritalStatus: "required", bidvRelationship: "required",
+      email: "required", maritalStatus: "required", hasRelationship: "required",
       nationalIdIssueDate: "optional", nationalIdIssuePlace: "optional", landlinePhone: "optional", otherField: "required"
     }),
     S(2, true, {
@@ -46,7 +46,7 @@ export const CLIENT_FORM_CONFIG: FormConfig = {
       firstName: "required", lastName: "required", dateOfBirth: "required",
       gender: "required", nationalId: "required", phone: "required",
       email: "required", maritalStatus: "required",
-      bidvRelationship: "hidden",
+      hasRelationship: "hidden",
       nationalIdIssueDate: "optional", nationalIdIssuePlace: "optional", landlinePhone: "optional",
     }),
     S(2, true, {}),
@@ -66,7 +66,7 @@ export const POS_FORM_CONFIG: FormConfig = {
       firstName: "required", lastName: "required", dateOfBirth: "required",
       nationalId: "required", phone: "required",
       gender: "optional", email: "optional", maritalStatus: "optional",
-      bidvRelationship: "hidden", nationalIdIssueDate: "hidden",
+      hasRelationship: "hidden", nationalIdIssueDate: "hidden",
       nationalIdIssuePlace: "hidden", landlinePhone: "hidden",
     }),
     S(2, false, {}),

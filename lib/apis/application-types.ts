@@ -14,7 +14,9 @@ export interface ApplicationRequest {
 // ── Update Application sub-types ──────────────────────────────────────────────
 
 export interface UpdateApplicationCustomerInfo {
-  age: number;
+  dateOfBirth: string;
+  nationalId?: string;
+  phoneNumber?: string;
   gender?: 'MALE' | 'FEMALE' | 'OTHER';
   maritalStatus: string;
   numberOfDependents?: number;
@@ -30,7 +32,7 @@ export interface UpdateApplicationCustomerInfo {
   nationalIdIssueDate?: string        // yyyy-MM-dd
   nationalIdIssuePlace?: string
   landlinePhone?: string
-  bidvRelationship?: 'EXISTING' | 'NEW'
+  hasRelationship?: 'EXISTING' | 'NEW'
   // Step 4 new
   addressLine2?: string
   city?: string
@@ -172,7 +174,9 @@ export interface LoanApplication {
   // personal
   /** @deprecated always empty string from entity — use borrower.fullName */
   borrowerName: string
-  age: number
+  dateOfBirth: string | null
+  nationalId: string | null
+  phoneNumber: string | null
   gender: string
   maritalStatus: string | null
   numberOfDependents: number | null
@@ -192,7 +196,7 @@ export interface LoanApplication {
   nationalIdIssueDate: string | null
   nationalIdIssuePlace: string | null
   landlinePhone: string | null
-  bidvRelationship: string | null
+  hasRelationship: string | null
 
   // employment
   employmentType: string | null

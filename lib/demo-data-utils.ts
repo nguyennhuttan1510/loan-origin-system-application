@@ -19,7 +19,7 @@ export function fillDemoData(seed: LoanApplicationSeed): LoanFormData {
       phone: seed.phone ?? "",
       landlinePhone: "",
       maritalStatus: seed.maritalStatus,
-      bidvRelationship: seed.bidvRelationship ?? "",
+      hasRelationship: seed.hasRelationship ?? "",
     },
     customerIncome: {
       employmentStatus: seed.employmentType,

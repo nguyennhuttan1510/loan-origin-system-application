@@ -1,7 +1,11 @@
 import http from "@/lib/http";
-import { ApplicationRequest, ApplicationUpdateResponse, UpdateApplicationRequest } from "@/lib/apis/application-types";
+import {
+  ApplicationRequest,
+  ApplicationUpdateResponse,
+  LoanApplication,
+  UpdateApplicationRequest,
+} from "@/lib/apis/application-types";
 import { ApiResponse, PaginatedResponse, UnderwritingListItem, UnderwritingQueueParams } from "@/lib/apis/underwriting-types";
-import type { LoanApplicationSeed } from "@/lib/apis/seeder-types";
 
 const Application = {
   createApplication: (payload: ApplicationRequest) =>
@@ -14,7 +18,7 @@ const Application = {
     ),
 
   getApplicationDetail: (id: number) =>
-    http.get<ApiResponse<LoanApplicationSeed>>(
+    http.get<ApiResponse<LoanApplication>>(
       `/loan-application/${id}`
     ),
 
